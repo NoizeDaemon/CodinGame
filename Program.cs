@@ -1,4 +1,6 @@
-﻿var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
+﻿var standardInputStream = new StreamReader(Console.OpenStandardInput());
+
+var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
 var testCases = File.ReadAllText(filePath).Split(Environment.NewLine + Environment.NewLine);
 
 //Console.WriteLine("6,4 -> " + Solution.GCD(6, 4));
@@ -10,15 +12,19 @@ var testCases = File.ReadAllText(filePath).Split(Environment.NewLine + Environme
 
 while (true)
 {
-    int testCaseIndex = Convert.ToInt32(Console.ReadLine()) - 1;
-
     Console.WriteLine("Enter testcase number...");
+    int testCase = Convert.ToInt32(Console.ReadLine());
 
-    Console.WriteLine($"\n**** Start: TestCase {testCaseIndex} ****\n\n");
 
-    Console.SetIn(new StringReader(testCases[testCaseIndex]));
+    Console.WriteLine($"\n**** Start: TestCase {testCase} ****\n\n");
+
+    var testCaseInputStream = new StringReader(testCases[testCase - 1]);
+
+    Console.SetIn(testCaseInputStream);
 
     Solution.Main(new string[0]);
 
-    Console.WriteLine($"\n\n**** End: TestCase {testCaseIndex} ****\n");
+    Console.WriteLine($"\n\n**** End: TestCase {testCase} ****\n");
+
+    Console.SetIn(standardInputStream);
 }
