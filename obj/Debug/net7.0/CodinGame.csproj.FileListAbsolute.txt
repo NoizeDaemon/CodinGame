@@ -13,3 +13,9 @@ D:\Coding\CodinGame\obj\Debug\net7.0\refint\CodinGame.dll
 D:\Coding\CodinGame\obj\Debug\net7.0\CodinGame.pdb
 D:\Coding\CodinGame\obj\Debug\net7.0\CodinGame.genruntimeconfig.cache
 D:\Coding\CodinGame\obj\Debug\net7.0\ref\CodinGame.dll
+D:\Coding\CodinGame\bin\Debug\net7.0\BetterConsoles.Colors.dll
+D:\Coding\CodinGame\bin\Debug\net7.0\BetterConsoles.Core.dll
+D:\Coding\CodinGame\bin\Debug\net7.0\BetterConsole.Tables.dll
+D:\Coding\CodinGame\bin\Debug\net7.0\Clawfoot.Core.dll
+D:\Coding\CodinGame\bin\Debug\net7.0\Clawfoot.Extensions.dll
+D:\Coding\CodinGame\obj\Debug\net7.0\CodinGame.csproj.CopyComplete

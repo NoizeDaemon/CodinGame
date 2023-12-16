@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace MovesInMaze;
+namespace CodinGame.SolvedPuzzles.MovesInMaze;
 
 public class Node
 {
@@ -52,7 +52,7 @@ public static class Extensions
 
     public static int FromHexatrigesimal(this char c)
     {
-        int i = (int)c;
+        int i = c;
         return i < 65 ? i - 48 : i - 55;
     }
 }
