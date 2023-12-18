@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace CodinGame.Misc;
 internal class Snippets
 {
+    // Math
+
     public static int GCD(int a, int b) => b > 0 ? GCD(b, a % b) : a;
     public static int LCM(int a, int b) => a * b / GCD(a, b);
 
@@ -21,4 +23,10 @@ internal class Snippets
             }
         }
     }
+
+
+    // Conversions
+
+    public static int ConvertStringToIntFromBase(string s, int fromBase) => Convert.ToInt32(s, fromBase);
+    public static string ConvertIntToStringToBase(int value, int toBase) => Convert.ToString(value, toBase);
 }

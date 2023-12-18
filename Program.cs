@@ -28,8 +28,12 @@ while (true)
     else
     {
         foreach (var t in testCases) RunTestCase(t);
+        break;
     }
 }
+
+Console.ReadKey();
+Environment.Exit(0);
 
 
 static void RunTestCase(TestCase testCase)
@@ -52,7 +56,7 @@ static void RunTestCase(TestCase testCase)
     Console.SetIn(testCaseInputStream);
     Console.SetOut(testCaseOutputStream);
 
-    Solution.Main(new string[0]);
+    Solution.Main();
     var output = testCaseOutputStream.ToString().Trim();
 
     Console.SetIn(standardInputStream);
