@@ -1,6 +1,6 @@
 using System;
 
-namespace SolvedPuzzles.PowerOfThor_Episode1;
+namespace CodinGame.SolvedPuzzles.PowerOfThor.Episode1;
 
 // Source:          https://www.codingame.com/ide/puzzle/power-of-thor-episode-1
 // Instructions:    Given the coordinates of Thor and his LightPower, provide move instructions in 8 directions for Thor to reach his power-up in the allotted number of moves.
