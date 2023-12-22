@@ -17,40 +17,67 @@ class Player
 
     static void Main(string[] args)
     {
-        string[] inputs;
-        int surfaceN = int.Parse(Console.ReadLine()); // the number of points used to draw the surface of Mars.
-        //for (int i = 0; i < surfaceN; i++)
-        //{
-        //    inputs = Console.ReadLine().Split(' ');
-        //    int landX = int.Parse(inputs[0]); // X coordinate of a surface point. (0 to 6999)
-        //    int landY = int.Parse(inputs[1]); // Y coordinate of a surface point. By linking all the points together in a sequential fashion, you form the surface of Mars.
-        //}
+        var surfacePoints = new (int X, int Y)[int.Parse(Console.ReadLine())];
+        (int MinX, int MaxX, int Y) landingZone = (0, 0, 0);
 
-        IEnumerable<(int X, int Y)> surface = Enumerable.Range(0, surfaceN)
-                                                        .Select(_ => Console.ReadLine().Split(' '))
-                                                        .Select(s => (int.Parse(s[0]), int.Parse(s[1])))
-                                                        .ToArray();
+        for (int i = 0; i < surfacePoints.Length; i++)
+        {
+            var inputs = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
+            surfacePoints[i] = (inputs[0], inputs[1]);
+            
+            if (i > 1 && surfacePoints[i - 1].Y == surfacePoints[i].Y)
+            {
+                landingZone = (surfacePoints[i - 1].X, surfacePoints[i].X, surfacePoints[i].Y);
+            }
+        }
 
-        // game loop
+        int hDelta = -1;
+        float targetPower = -1;
+        int targetPowerFloor = -1;
+        int targetPowerCeiling = -1;
+        int turnPower = -1;
+
+        float targetPowerUsed = 0;
+        int actualPowerUsed = 0;
+
         while (true)
         {
             var input = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
             (int X, int Y, int hSpeed, int vSpeed, int fuel, int rotate, int power) = (input[0], input[1], input[2], input[3], input[4], input[5], input[6]);
+ 
 
-            int minPower = Math.Max(power - 1, 0);
-            int maxPower = Math.Min(power + 1, 4);
+            if (hDelta == -1)
+            {
+                hDelta = Y - landingZone.Y;
+                targetPower = vSpeedLimit * vSpeedLimit / (2 * -hDelta) - g;
+                targetPowerFloor = (int)Math.Floor(targetPower);
+                targetPowerCeiling = (int)Math.Ceiling(targetPower);
+            }
 
-            Console.Error.WriteLine($"Min: {minPower}, Max: {maxPower}");
+            Console.Error.WriteLine($"s0: {hDelta}, p: {targetPower}");
 
-            foreach(int p in Enumerable.Range(minPower, maxPower - minPower + 1)) Console.Error.WriteLine($"{p}, {Math.Abs(GetSpeed(vSpeed, g + (float)p) - vSpeedLimit)}");
+            targetPowerUsed += (float)targetPower;
+            actualPowerUsed += power;
 
-            var targetPower = vSpeed + g > vSpeedLimit ? 0 : Enumerable.Range(minPower, maxPower - minPower + 1)
-                                                                   .OrderBy(p => Math.Abs(GetSpeed(vSpeed, g + (float)p) - vSpeedLimit))
-                                                                   .First();
+            Console.Error.WriteLine($"Target: {targetPowerUsed}, Actual: {actualPowerUsed}");
 
-            targetPower = Math.Min(fuel, targetPower);
-            
-            Console.WriteLine($"0 {targetPower}");
+            turnPower = actualPowerUsed < targetPowerUsed ? targetPowerCeiling : targetPowerFloor;
+
+            // OLD -> Fuel: 2951
+
+            //int minPower = Math.Max(power - 1, 0);
+            //int maxPower = Math.Min(power + 1, 4);
+
+            //Console.Error.WriteLine($"Min: {minPower}, Max: {maxPower}");
+
+            //foreach (int p in Enumerable.Range(minPower, maxPower - minPower + 1)) Console.Error.WriteLine($"{p}, {Math.Abs(GetSpeed(vSpeed, g + (float)p) - vSpeedLimit)}");
+
+            //turnPower = vSpeed + g > vSpeedLimit ? 0 : Enumerable.Range(minPower, maxPower - minPower + 1)
+            //                                                       .OrderBy(p => Math.Abs(GetSpeed(vSpeed, g + (float)p) - vSpeedLimit))
+            //                                                       .First();
+
+
+            Console.WriteLine($"0 {turnPower}");
         }
     }
 }
