@@ -56,7 +56,7 @@ static void RunTestCase(TestCase testCase)
     Console.SetIn(testCaseInputStream);
     Console.SetOut(testCaseOutputStream);
 
-    Solution.Main();
+    Player.Main();
     var output = testCaseOutputStream.ToString().Trim();
 
     Console.SetIn(standardInputStream);
