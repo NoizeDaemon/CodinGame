@@ -7,8 +7,15 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 
-var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
-var testCases = File.ReadAllText(filePath).Split(Environment.NewLine + Environment.NewLine).Select((s, i) => new TestCase(i + 1, s)).ToArray();
+//var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
+var filePath = "C:\\Users\\dario.frei\\Documents\\GitHub\\CodinGame\\TestCases.txt";
+
+var inputOutputSeparator = "OUTPUT";
+
+var testCases = File.ReadAllText(filePath)
+                    .Split(Environment.NewLine + Environment.NewLine)
+                    .Select((s, i) => new TestCase(i + 1, s, inputOutputSeparator))
+                    .ToArray();
 
 //Console.WriteLine("6,4 -> " + Solution.GCD(6, 4));
 //Console.WriteLine("45,15 -> " + Solution.GCD(45, 15));
@@ -56,7 +63,7 @@ static void RunTestCase(TestCase testCase)
     Console.SetIn(testCaseInputStream);
     Console.SetOut(testCaseOutputStream);
 
-    Player.Main();
+    Solution.Main();
     var output = testCaseOutputStream.ToString().Trim();
 
     Console.SetIn(standardInputStream);
@@ -110,9 +117,9 @@ static void PrintTable(TestCase testCase, string output)
 
 class TestCase
 {
-    public TestCase(int id, string input)
+    public TestCase(int id, string input, string separator)
     {
-        var parts = input.Split(';');
+        var parts = input.Split(separator);
         ID = id;
         Input = parts[0].Trim();
         ExpectedOutput = parts.Length > 1 ? parts[1].Trim() : null;
