@@ -7,8 +7,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 
-//var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
-var filePath = "C:\\Users\\dario.frei\\Documents\\GitHub\\CodinGame\\TestCases.txt";
+var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
+//var filePath = "C:\\Users\\dario.frei\\Documents\\GitHub\\CodinGame\\TestCases.txt";
 
 var inputOutputSeparator = "OUTPUT";
 
@@ -63,7 +63,7 @@ static void RunTestCase(TestCase testCase)
     Console.SetIn(testCaseInputStream);
     Console.SetOut(testCaseOutputStream);
 
-    Solution.Main();
+    Player.Main();
     var output = testCaseOutputStream.ToString().Trim();
 
     Console.SetIn(standardInputStream);
@@ -86,7 +86,7 @@ static void PrintTable(TestCase testCase, string output)
                 .ForegroundColor(Color.AliceBlue)
         .AddColumn("Output")
             .HeaderFormat()
-                .ForegroundColor(isOutputCorrect ? Color.Green : Color.Red)
+                .ForegroundColor(showExpectedOutput ? isOutputCorrect ? Color.Green : Color.Red : Color.AliceBlue)
         .AddColumn("Expected")
             .HeaderFormat()
                 .ForegroundColor(Color.AliceBlue)   
@@ -96,7 +96,7 @@ static void PrintTable(TestCase testCase, string output)
 
     var inputLines = testCase.Input.Split(Environment.NewLine);
     var outputLines = output.Split(Environment.NewLine);
-    var expectedLines = testCase.ExpectedOutput.Split(Environment.NewLine);
+    var expectedLines = showExpectedOutput ? testCase.ExpectedOutput.Split(Environment.NewLine) : new string[] { "-" };
 
     var maxLines = Math.Max(Math.Max(inputLines.Length, expectedLines.Length), outputLines.Length);
 
