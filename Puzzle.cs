@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 public class Player
 {
-    public enum Move { SPEED, SLOW, JUMP, WAIT, UP, DOWN }
+    public enum Move { SPEED, JUMP, UP, DOWN, SLOW, WAIT }
     public enum Direction { NONE = 0, UP = -1, DOWN = 1 }
 
     public readonly struct Conditions
@@ -77,6 +77,7 @@ public class Player
         public bool IsViable { get; set; }
         public GameState Parent { get; }
         public Move MoveFromParent { get; set; }
+        public List<Move> FailedMoves { get; set; }
 
         public GameState(int M)
         {
@@ -92,13 +93,19 @@ public class Player
                 BikeYs[i] = int.Parse(Console.ReadLine().Split(' ')[1]);
                 Console.Error.WriteLine(BikeYs[i]);
             }
+
+            FailedMoves = new List<Move>();
         }
 
         public GameState(GameState prev, Move move, Conditions cond)
         {
-            MoveCount = prev.MoveCount + 1;
-            MoveFromParent = move;
-            Parent = prev;
+            FailedMoves = new List<Move>();
+            if (prev.Speed == 0 && move != Move.SPEED) return;
+            if (prev.Speed == 49 && move == Move.SPEED) return;
+            if (prev.Speed <= 1 && move == Move.SLOW) return;
+            if (prev.BikeYs.Min() == 0 && move == Move.UP) return;
+            if (prev.BikeYs.Max() == 3 && move == Move.DOWN) return;
+            
             Speed = move switch
             {
                 Move.SPEED => prev.Speed + 1,
@@ -116,8 +123,11 @@ public class Player
                 }
             }
             BikeYs = newBikeYs.ToArray();
-
             IsViable = BikeYs.Length >= cond.MinBikeCount;
+
+            MoveCount = prev.MoveCount + 1;
+            MoveFromParent = move;
+            Parent = prev;
             X = prev.X + Speed;
         }
     }
@@ -133,32 +143,31 @@ public class Player
         var cond = new Conditions(V);
         statesToCheck.Push(new GameState(M));
 
-        var allMoves = (int[])Enum.GetValues(typeof(Move));
+        //var allMoves = (int[])Enum.GetValues(typeof(Move));
 
         Action checkStates = () =>
         {
-            if (statesToCheck.TryPop(out var currentParent))
+            if (!statesToCheck.TryPop(out var currentParent)) return;
+
+            if (currentParent.X >= cond.BridgeLength)
             {
-                if (currentParent.X >= cond.BridgeLength)
-                {
-                    solutions.Add(currentParent);
-                }
-                else
-                {
-                    Parallel.ForEach<int>(allMoves, m =>
-                    {
-                        var move = (Move)m;
-                        if (currentParent.Speed <= 1 && move == Move.SLOW) return;
-                        if (currentParent.Speed == 0 && move != Move.SPEED) return;
-                        if (currentParent.BikeYs.Min() == 0 && move == Move.UP) return;
-                        if (currentParent.BikeYs.Max() == 3 && move == Move.DOWN) return;
+                solutions.Add(currentParent);
+                return;
+            }
 
-                        var newState = new GameState(currentParent, move, cond);
-
-                        if (newState.IsViable) statesToCheck.Push(newState);
-                    });
+            GameState newState;
+            for (int m = 0; m < statesToCheck.Count; m++)
+            {
+                newState = new GameState(currentParent, (Move)m, cond);
+                if (newState.IsViable)
+                {
+                    statesToCheck.Push(newState);
+                    break;
                 }
             }
+
+            
+
         };
 
         while (solutions.Count < 1000)
