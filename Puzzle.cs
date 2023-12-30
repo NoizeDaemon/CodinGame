@@ -29,6 +29,23 @@ public class Player
                 }
             }
         }
+
+        public Conditions(int V, string[] inputs)
+        {
+            MinBikeCount = V;
+            BridgeLength = inputs[0].Length;
+            _isPassable = new bool[4, BridgeLength];
+
+            for (int y = 0; y < 4; y++)
+            {
+                Console.Error.WriteLine(inputs[y].ToString());
+                for (int x = 0; x < BridgeLength; x++)
+                {
+                    _isPassable[y, x] = inputs[y][x].Equals('.');
+                }
+            }
+        }
+
         public readonly int MinBikeCount { get; }
         public readonly int BridgeLength { get; }
 
@@ -68,7 +85,7 @@ public class Player
         }
     }
 
-    class GameState
+    public class GameState
     {
         public int Speed { get; set; }
         public int X { get; set; }
@@ -122,16 +139,12 @@ public class Player
         }
     }
 
-
-    public static async Task Main()
+    public async Task<ConcurrentBag<GameState>> GetSolutions(Conditions cond, GameState root)
     {
         ConcurrentBag<GameState> solutions = new();
         ConcurrentStack<GameState> statesToCheck = new();
 
-        int M = int.Parse(Console.ReadLine()); // the amount of motorbikes to control
-        int V = int.Parse(Console.ReadLine()); // the minimum amount of motorbikes that must survive
-        var cond = new Conditions(V);
-        statesToCheck.Push(new GameState(M));
+        statesToCheck.Push(root);
 
         var allMoves = (int[])Enum.GetValues(typeof(Move));
 
@@ -142,64 +155,132 @@ public class Player
                 if (currentParent.X >= cond.BridgeLength)
                 {
                     solutions.Add(currentParent);
+                    return;
                 }
-                else
+                if (solutions.Any(s => s.MoveCount <= currentParent.MoveCount))
                 {
-                    Parallel.ForEach<int>(allMoves, m =>
-                    {
-                        var move = (Move)m;
-                        if (currentParent.Speed <= 1 && move == Move.SLOW) return;
-                        if (currentParent.Speed == 0 && move != Move.SPEED) return;
-                        if (currentParent.BikeYs.Min() == 0 && move == Move.UP) return;
-                        if (currentParent.BikeYs.Max() == 3 && move == Move.DOWN) return;
-
-                        var newState = new GameState(currentParent, move, cond);
-
-                        if (newState.IsViable) statesToCheck.Push(newState);
-                    });
+                    return;
                 }
+
+                Parallel.ForEach<int>(allMoves, m =>
+                {
+                    var move = (Move)m;
+                    if ((currentParent.Speed <= 1 || currentParent.MoveFromParent == Move.SPEED) && move == Move.SLOW) return;
+                    if ((currentParent.Speed == 0 || currentParent.MoveFromParent == Move.SLOW) && move != Move.SPEED) return;
+                    if (currentParent.BikeYs.Min() == 0 && move == Move.UP) return;
+                    if (currentParent.BikeYs.Max() == 3 && move == Move.DOWN) return;
+
+                    var newState = new GameState(currentParent, move, cond);
+
+                    if (newState.IsViable) statesToCheck.Push(newState);
+                });
             }
         };
 
-        while (solutions.Count < 1000)
+        while (solutions.Count == 0 || statesToCheck.Count > 0)
         {
-            var tasks = new Task[100];
+            var tasks = new Task[10];
             Array.Fill(tasks, Task.Factory.StartNew(checkStates));
             await Task.WhenAll(tasks);
         }
-        
 
-        Stack<Move> path = new Stack<Move>();
-
-        GameState lastState = solutions.OrderBy(s => s.MoveCount).First();
+        return solutions;
+    }
 
 
-        while (lastState.Parent != null)
+    public async Task<ConcurrentBag<GameState>> GetSolutionsAlt(Conditions cond, GameState root)
+    {
+        ConcurrentBag<GameState> solutions = new();
+        ConcurrentStack<GameState> statesToCheck = new();
+
+        statesToCheck.Push(root);
+
+        var allMoves = (int[])Enum.GetValues(typeof(Move));
+
+        Action checkStates = () =>
         {
-            path.Push(lastState.MoveFromParent);
-            lastState = lastState.Parent;
-        }
-
-        string move = path.Pop().ToString();
-        Console.WriteLine(move);
-
-        while (true)
-        {
-            int S = int.Parse(Console.ReadLine());
-            for (int i = 0; i < M; i++)
+            if (statesToCheck.TryPop(out var currentParent))
             {
-                var inputs = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
-                int X = inputs[0]; 
-                int Y = inputs[1];
-                bool A = inputs[2] > 0;
+                if (currentParent.X >= cond.BridgeLength)
+                {
+                    solutions.Add(currentParent);
+                    return;
+                }
+                if (solutions.Any(s => s.MoveCount <= currentParent.MoveCount))
+                {
+                    return;
+                }
+
+                Parallel.ForEach<int>(allMoves, m =>
+                {
+                    var move = (Move)m;
+                    if ((currentParent.Speed <= 1 || currentParent.MoveFromParent == Move.SPEED) && move == Move.SLOW) return;
+                    if ((currentParent.Speed == 0 || currentParent.MoveFromParent == Move.SLOW) && move != Move.SPEED) return;
+                    if (currentParent.BikeYs.Min() == 0 && move == Move.UP) return;
+                    if (currentParent.BikeYs.Max() == 3 && move == Move.DOWN) return;
+
+                    var newState = new GameState(currentParent, move, cond);
+
+                    if (newState.IsViable) statesToCheck.Push(newState);
+                });
             }
+        };
 
-
-
-
-            if (path.TryPop(out var m)) move = m.ToString();
-            else move = "SPEED";
-            Console.WriteLine(move);
+        while (solutions.Count == 0 || statesToCheck.Count > 0)
+        {
+            var tasks = new List<Task>();
+            for (int i = 0; i < 10; i++)
+            {
+                tasks.Add(Task.Run(await Task.Run(() => checkStates)));
+            }
+            await Task.WhenAll(tasks);
         }
+
+        return solutions;
+    }
+
+
+    public static async Task Main()
+    {
+        int M = int.Parse(Console.ReadLine()); // the amount of motorbikes to control
+        int V = int.Parse(Console.ReadLine()); // the minimum amount of motorbikes that must survive
+        var cond = new Conditions(V);
+        //var solutions = await GetSolutions(cond, new GameState(M));
+
+
+
+
+        //Stack<Move> path = new Stack<Move>();
+
+        //GameState lastState = solutions.OrderBy(s => s.MoveCount).First();
+
+
+        //while (lastState.Parent != null)
+        //{
+        //    path.Push(lastState.MoveFromParent);
+        //    lastState = lastState.Parent;
+        //}
+
+        //string move = path.Pop().ToString();
+        //Console.WriteLine(move);
+
+        //while (true)
+        //{
+        //    int S = int.Parse(Console.ReadLine());
+        //    for (int i = 0; i < M; i++)
+        //    {
+        //        var inputs = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
+        //        int X = inputs[0]; 
+        //        int Y = inputs[1];
+        //        bool A = inputs[2] > 0;
+        //    }
+
+
+
+
+        //    if (path.TryPop(out var m)) move = m.ToString();
+        //    else move = "SPEED";
+        //    Console.WriteLine(move);
+        //}
     }
 }

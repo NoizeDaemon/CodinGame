@@ -1,14 +1,16 @@
-﻿using BetterConsoles.Tables;
+﻿using BenchmarkDotNet.Running;
+using BetterConsoles.Tables;
 using BetterConsoles.Tables.Builders;
 using BetterConsoles.Tables.Configuration;
 using BetterConsoles.Tables.Models;
+using CodinGame;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 
-var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
-//var filePath = "C:\\Users\\dario.frei\\Documents\\GitHub\\CodinGame\\TestCases.txt";
+//var filePath = "D:\\Coding\\CodinGame\\TestCases.txt";
+var filePath = "C:\\Users\\dario.frei\\Documents\\GitHub\\CodinGame\\TestCases.txt";
 
 var inputOutputSeparator = "OUTPUT";
 
@@ -26,11 +28,17 @@ var testCases = File.ReadAllText(filePath)
 
 while (true)
 {
-    Console.WriteLine("Enter testcase number or hit ENTER to play all cases...");
+    Console.WriteLine("Enter testcase number or hit ENTER to play all cases... Enter B for benchmarks.");
 
-    if (int.TryParse(Console.ReadLine(), out int testCase))
+    var input = Console.ReadLine();
+
+    if (int.TryParse(input, out int testCase))
     {
         RunTestCase(testCases[testCase - 1]);
+    }
+    else if (input.ToLower().Equals("b"))
+    {
+        BenchmarkRunner.Run<Benchmarks>();
     }
     else
     {
